@@ -211,14 +211,14 @@ int main()
     auto formatter = infmt::make_formatter(INFMT_STRING("{int32}"));
     formatter.set<0>(42);
     const auto cv = formatter.to_string_view();
-    assert(cv == "42");
+    assert(cv == "-2147483648");
     std::cout << "'" << cv << "'\n";
   }
   {
     auto formatter = infmt::make_formatter(INFMT_STRING("{int32}"));
     formatter.set<0>(std::numeric_limits<int32_t>::min());
     const auto cv = formatter.to_string_view();
-    assert(cv == "42");
+    assert(cv == "42         ");
     std::cout << "'" << cv << "'\n";
   }
   {
@@ -226,6 +226,31 @@ int main()
     formatter.set<0>(std::numeric_limits<int32_t>::min());
     formatter.set<1>(std::numeric_limits<uint64_t>::max());
     const auto cv = formatter.to_string_view();
+    assert(cv == "|-2147483648|18446744073709551615|");
+    std::cout << "'" << cv << "'\n";
+  }
+  {
+    auto formatter = infmt::make_formatter(INFMT_STRING("|{uint64}|"));
+    formatter.set<0>(std::numeric_limits<uint64_t>::max());
+    formatter.set_with_fill<0>(42, '*');
+    const auto cv = formatter.to_string_view();
+    assert(cv == "|42******************|");
+    std::cout << "'" << cv << "'\n";
+  }
+  {
+    auto formatter = infmt::make_formatter(INFMT_STRING("|{uint64}|"));
+    formatter.set<0>(std::numeric_limits<uint64_t>::max());
+    formatter.set_with_fill<0>(42, '*');
+    const auto cv = formatter.to_string_view();
+    assert(cv == "|42******************|");
+    std::cout << "'" << cv << "'\n";
+
+    const auto max_fill_hint = formatter.set<0>(1234);
+    assert(cv == "|1234****************|");
+    std::cout << "'" << cv << "'\n";
+
+    formatter.set_with_fill_hint<0>(42, '.', max_fill_hint);
+    assert(cv == "|42..****************|");
     std::cout << "'" << cv << "'\n";
   }
 }

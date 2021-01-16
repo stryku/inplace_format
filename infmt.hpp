@@ -290,12 +290,36 @@ public:
   constexpr formatter() = default;
 
   template <unsigned N, typename Value>
-  void set(const Value& val)
+  auto set(const Value& val)
   {
     using param_t = std::decay_t<decltype(std::get<N>(m_params))>;
     const auto param_buf = param_t::to_span(m_buffer);
     const auto [ptr, ec] =
       std::to_chars(param_buf.begin(), param_buf.end(), val);
+    return ptr;
+  }
+
+  template <unsigned N, typename Value>
+  void set_with_fill(const Value& val, char fill)
+  {
+    using param_t = std::decay_t<decltype(std::get<N>(m_params))>;
+    const auto param_buf = param_t::to_span(m_buffer);
+    const auto [ptr, ec] =
+      std::to_chars(param_buf.begin(), param_buf.end(), val);
+    std::fill(ptr, param_buf.end(), fill);
+  }
+
+  template <unsigned N, typename Value>
+  void set_with_fill_hint(const Value& val, char fill, char* max_fill_hint)
+  {
+    using param_t = std::decay_t<decltype(std::get<N>(m_params))>;
+    const auto param_buf = param_t::to_span(m_buffer);
+    const auto [ptr, ec] =
+      std::to_chars(param_buf.begin(), param_buf.end(), val);
+
+    if (ptr < max_fill_hint) {
+      std::fill(ptr, max_fill_hint, fill);
+    }
   }
 
   constexpr auto to_string_view() const
