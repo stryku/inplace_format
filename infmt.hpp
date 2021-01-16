@@ -85,6 +85,10 @@ struct format_param
   static constexpr auto length_v = Length;
 };
 
+struct string_param
+{
+};
+
 template <typename... Ts>
 struct types
 {
@@ -137,6 +141,8 @@ constexpr auto format_param_from(S)
     return format_param<std::uint64_t, CurrentPos, length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
     return format_param<std::int64_t, CurrentPos, length>{};
+  } else if constexpr (S::substr(0, 4) == "{str") {
+    return format_param<string_param, CurrentPos, length>{};
   } else {
     return true;
   }

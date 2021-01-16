@@ -68,5 +68,30 @@ int main()
       std::is_same_v<infmt::details::format_param<std::uint32_t, 0, 9>,
                      decltype(infmt::details::format_param_from<0u>(s))>);
   }
+  {
+    constexpr auto s = INFMT_STRING("{int32}");
+    static_assert(
+      std::is_same_v<infmt::details::format_param<std::int32_t, 0, 10>,
+                     decltype(infmt::details::format_param_from<0u>(s))>);
+  }
+  {
+    constexpr auto s = INFMT_STRING("{uint64}");
+    static_assert(
+      std::is_same_v<infmt::details::format_param<std::uint64_t, 0, 19>,
+                     decltype(infmt::details::format_param_from<0u>(s))>);
+  }
+  {
+    constexpr auto s = INFMT_STRING("{int64}");
+    static_assert(
+      std::is_same_v<infmt::details::format_param<std::int64_t, 0, 19>,
+                     decltype(infmt::details::format_param_from<0u>(s))>);
+  }
+  {
+    constexpr auto s = INFMT_STRING("{str1234567890}");
+    static_assert(
+      std::is_same_v<infmt::details::format_param<infmt::details::string_param,
+                                                  0, 1234567890>,
+                     decltype(infmt::details::format_param_from<0u>(s))>);
+  }
   constexpr auto formatter = infmt::make_formatter("{int32}");
 }
