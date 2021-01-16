@@ -44,12 +44,15 @@ int main()
 }}
 )#");
 
-  // Formatting preparer happens at compile time
+  // Preparing formatter happens at compile time
   constexpr auto formatter_ct = infmt::make_formatter(format_str);
 
+  // Need a runtime version, because we'll change its state.
   auto formatter = formatter_ct;
+  // The view is valid for the formatter lifetime.
   const auto cv = formatter.to_string_view();
 
+  // Setting value of a formatting param. Here, the `seq_no` value.
   formatter.set<0>(1);
 
   // Min value takes whole space
