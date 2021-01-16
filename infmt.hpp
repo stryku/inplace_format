@@ -13,8 +13,9 @@
         return std::string_view{ s };                                         \
       }                                                                       \
                                                                               \
-      static constexpr auto substr(std::string_view::size_type pos,           \
-                                   std::string_view::size_type count)         \
+      static constexpr auto substr(                                           \
+        std::string_view::size_type pos,                                      \
+        std::string_view::size_type count = std::string_view::npos)           \
       {                                                                       \
         return to_string_view().substr(pos, count);                           \
       }                                                                       \
@@ -96,23 +97,23 @@ struct types
 
 constexpr unsigned length_of(std::string_view s)
 {
-  if (s == "{uint8}") {
+  if (s.substr(0, 7u) == "{uint8}") {
     return std::numeric_limits<std::uint8_t>::digits10;
-  } else if (s == "{int8}") {
+  } else if (s.substr(0, 6u) == "{int8}") {
     return std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for minus
-  } else if (s == "{uint16}") {
+  } else if (s.substr(0, 8u) == "{uint16}") {
     return std::numeric_limits<std::uint16_t>::digits10;
-  } else if (s == "{int16}") {
+  } else if (s.substr(0, 7u) == "{int16}") {
     return std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for minus
-  } else if (s == "{uint32}") {
+  } else if (s.substr(0, 8u) == "{uint32}") {
     return std::numeric_limits<std::uint32_t>::digits10;
-  } else if (s == "{int32}") {
+  } else if (s.substr(0, 7u) == "{int32}") {
     return std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for minus
-  } else if (s == "{uint64}") {
+  } else if (s.substr(0, 8u) == "{uint64}") {
     return std::numeric_limits<std::uint64_t>::digits10;
-  } else if (s == "{int64}") {
+  } else if (s.substr(0, 7u) == "{int64}") {
     return std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for minus
-  } else if (s.substr(0, 4) == "{str") {
+  } else if (s.substr(0, 4u) == "{str") {
     const auto end_pos = s.find('}');
     const auto number_subs = s.substr(4, end_pos - 4);
     return stou(number_subs);
@@ -121,47 +122,32 @@ constexpr unsigned length_of(std::string_view s)
   return s.size();
 }
 
-template <unsigned CurrentPos, typename S>
+template <unsigned CurrentPos, unsigned CurrentSize = 0u, typename S>
 constexpr auto format_param_from(S)
 {
-  constexpr auto length = length_of(S::to_string_view());
+  constexpr auto subs = S::substr(CurrentPos);
+  constexpr auto length = length_of(subs);
   if constexpr (S::substr(CurrentPos, 7u) == "{uint8}") {
-    return format_param<std::uint8_t, CurrentPos, length>{};
+    return format_param<std::uint8_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 6u) == "{int8}") {
-    return format_param<std::int8_t, CurrentPos, length>{};
+    return format_param<std::int8_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint16}") {
-    return format_param<std::uint16_t, CurrentPos, length>{};
+    return format_param<std::uint16_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int16}") {
-    return format_param<std::int16_t, CurrentPos, length>{};
+    return format_param<std::int16_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint32}") {
-    return format_param<std::uint32_t, CurrentPos, length>{};
+    return format_param<std::uint32_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int32}") {
-    return format_param<std::int32_t, CurrentPos, length>{};
+    return format_param<std::int32_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint64}") {
-    return format_param<std::uint64_t, CurrentPos, length>{};
+    return format_param<std::uint64_t, CurrentSize, length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
-    return format_param<std::int64_t, CurrentPos, length>{};
-  } else if constexpr (S::substr(0, 4) == "{str") {
-    return format_param<string_param, CurrentPos, length>{};
+    return format_param<std::int64_t, CurrentSize, length>{};
+  } else if constexpr (S::substr(CurrentPos, 4) == "{str") {
+    return format_param<string_param, CurrentSize, length>{};
   } else {
     return true;
   }
-
-  // else if (s == "{int8}") {
-  //   return std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for minus
-  // } else if (s == "{uint16}") {
-  //   return std::numeric_limits<std::uint16_t>::digits10;
-  // } else if (s == "{int16}") {
-  //   return std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for minus
-  // } else if (s == "{uint32}") {
-  //   return std::numeric_limits<std::uint32_t>::digits10;
-  // } else if (s == "{int32}") {
-  //   return std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for minus
-  // } else if (s == "{uint64}") {
-  //   return std::numeric_limits<std::uint64_t>::digits10;
-  // } else if (s == "{int64}") {
-  //   return std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for minus
-  // }
 }
 
 constexpr auto calc_size(std::string_view s)
@@ -182,20 +168,32 @@ constexpr auto calc_size(std::string_view s)
   }
 }
 
-// template <typename... Params>
-// constexpr auto collect_param_types(std::string_view s, unsigned current_pos,
-//                                    Params... params)
-// {
-//   const auto current = s.substr(current_pos);
-//   const auto begin_pos = current.find('{');
-//   if (begin_pos == std::string_view::npos) {
-//     return types<Params...>{};
-//   }
+template <std::string_view::size_type FullLength, typename Params>
+struct collected_info
+{
+};
 
-//   const auto end_pos = current.find('}', begin_pos);
-//   const auto subs = current.substr(begin_pos, end_pos + 1u);
-//   size += length_of(subs);
-// }
+template <std::string_view::size_type CurrentPos,
+          std::string_view::size_type CurrentSize = 0u, typename S,
+          typename... Params>
+constexpr auto collect_param_types(S, Params... params)
+{
+  constexpr auto current = S::substr(CurrentPos);
+  constexpr auto begin_pos = current.find('{');
+  if constexpr (begin_pos == std::string_view::npos) {
+    return collected_info<CurrentSize + current.size(), types<Params...>>{};
+  } else {
+    constexpr auto end_pos = current.find('}', begin_pos);
+    constexpr auto subs =
+      S::substr(CurrentPos + begin_pos,
+                CurrentPos + end_pos + std::string_view::size_type{ 1 });
+    constexpr auto param =
+      format_param_from<CurrentPos + begin_pos, CurrentSize + begin_pos>(S{});
+    return collect_param_types<CurrentPos + end_pos + 1u,
+                               CurrentSize + begin_pos + param.length_v>(
+      S{}, params..., param);
+  }
+}
 
 }
 
