@@ -111,54 +111,56 @@ int main()
   // collecting params
   {
     constexpr auto s = INFMT_STRING("");
-    constexpr auto result = infmt::details::collect_param_types<0u>(s);
+    constexpr auto result = infmt::details::collect_format_info<0u>(s);
     using result_t = std::remove_cv_t<decltype(result)>;
-    using expected_t =
-      infmt::details::collected_info<0u, infmt::details::types<>>;
+    using expected_params_t = infmt::details::types<>;
 
-    static_assert(std::is_same_v<result_t, expected_t>);
+    static_assert(result_t::full_length_v == 0u);
+    static_assert(
+      std::is_same_v<typename result_t::params_t, expected_params_t>);
   }
   {
     constexpr auto s = INFMT_STRING("{uint8}");
-    constexpr auto result = infmt::details::collect_param_types<0u>(s);
+    constexpr auto result = infmt::details::collect_format_info<0u>(s);
     using result_t = std::remove_cv_t<decltype(result)>;
-    using expected_t = infmt::details::collected_info<
-      2,
-      infmt::details::types<infmt::details::format_param<std::uint8_t, 0, 2>>>;
+    using expected_params_t =
+      infmt::details::types<infmt::details::format_param<std::uint8_t, 0, 2>>;
 
-    static_assert(std::is_same_v<result_t, expected_t>);
+    static_assert(result_t::full_length_v == 2u);
+    static_assert(
+      std::is_same_v<typename result_t::params_t, expected_params_t>);
   }
   {
     constexpr auto s = INFMT_STRING("{uint8}{int8}");
-    constexpr auto result = infmt::details::collect_param_types<0u>(s);
+    constexpr auto result = infmt::details::collect_format_info<0u>(s);
     using result_t = std::remove_cv_t<decltype(result)>;
-    using expected_t = infmt::details::collected_info<
-      5,
+    using expected_params_t =
       infmt::details::types<infmt::details::format_param<std::uint8_t, 0, 2>,
-                            infmt::details::format_param<std::int8_t, 2, 3>>>;
+                            infmt::details::format_param<std::int8_t, 2, 3>>;
 
-    static_assert(std::is_same_v<result_t, expected_t>);
+    static_assert(result_t::full_length_v == 5u);
+    static_assert(
+      std::is_same_v<typename result_t::params_t, expected_params_t>);
   }
   {
     constexpr auto s =
       INFMT_STRING(" {uint8} {int8} {uint16} {int16} {uint32} {int32} "
                    "{uint64} {int64} {str123} ");
-    constexpr auto result = infmt::details::collect_param_types<0u>(s);
+    constexpr auto result = infmt::details::collect_format_info<0u>(s);
     using result_t = std::remove_cv_t<decltype(result)>;
-    using expected_t = infmt::details::collected_info<
-      204,
-      infmt::details::types<
-        infmt::details::format_param<std::uint8_t, 1, 2>,
-        infmt::details::format_param<std::int8_t, 4, 3>,
-        infmt::details::format_param<std::uint16_t, 8, 4>,
-        infmt::details::format_param<std::int16_t, 13, 5>,
-        infmt::details::format_param<std::uint32_t, 19, 9>,
-        infmt::details::format_param<std::int32_t, 29, 10>,
-        infmt::details::format_param<std::uint64_t, 40, 19>,
-        infmt::details::format_param<std::int64_t, 60, 19>,
-        infmt::details::format_param<infmt::details::string_param, 80, 123>>>;
+    using expected_t = infmt::details::types<
+      infmt::details::format_param<std::uint8_t, 1, 2>,
+      infmt::details::format_param<std::int8_t, 4, 3>,
+      infmt::details::format_param<std::uint16_t, 8, 4>,
+      infmt::details::format_param<std::int16_t, 13, 5>,
+      infmt::details::format_param<std::uint32_t, 19, 9>,
+      infmt::details::format_param<std::int32_t, 29, 10>,
+      infmt::details::format_param<std::uint64_t, 40, 19>,
+      infmt::details::format_param<std::int64_t, 60, 19>,
+      infmt::details::format_param<infmt::details::string_param, 80, 123>>;
 
-    static_assert(std::is_same_v<result_t, expected_t>);
+    static_assert(result_t::full_length_v == 204);
+    static_assert(std::is_same_v<typename result_t::params_t, expected_t>);
   }
   constexpr auto formatter = infmt::make_formatter("{int32}");
 }

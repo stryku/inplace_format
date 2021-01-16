@@ -168,20 +168,23 @@ constexpr auto calc_size(std::string_view s)
   }
 }
 
-template <std::string_view::size_type FullLength, typename Params>
-struct collected_info
+template <typename S, std::string_view::size_type FullLength, typename Params>
+struct format_info
 {
+  using format_t = S;
+  static constexpr auto full_length_v = FullLength;
+  using params_t = Params;
 };
 
 template <std::string_view::size_type CurrentPos,
           std::string_view::size_type CurrentSize = 0u, typename S,
           typename... Params>
-constexpr auto collect_param_types(S, Params... params)
+constexpr auto collect_format_info(S, Params... params)
 {
   constexpr auto current = S::substr(CurrentPos);
   constexpr auto begin_pos = current.find('{');
   if constexpr (begin_pos == std::string_view::npos) {
-    return collected_info<CurrentSize + current.size(), types<Params...>>{};
+    return format_info<S, CurrentSize + current.size(), types<Params...>>{};
   } else {
     constexpr auto end_pos = current.find('}', begin_pos);
     constexpr auto subs =
@@ -189,7 +192,7 @@ constexpr auto collect_param_types(S, Params... params)
                 CurrentPos + end_pos + std::string_view::size_type{ 1 });
     constexpr auto param =
       format_param_from<CurrentPos + begin_pos, CurrentSize + begin_pos>(S{});
-    return collect_param_types<CurrentPos + end_pos + 1u,
+    return collect_format_info<CurrentPos + end_pos + 1u,
                                CurrentSize + begin_pos + param.length_v>(
       S{}, params..., param);
   }
