@@ -5,34 +5,6 @@
 #include <string_view>
 #include <type_traits>
 
-template <std::size_t N, std::size_t... Is>
-constexpr std::array<char, N - 1> to_array(const char (&a)[N],
-                                           std::index_sequence<Is...>)
-{
-  return { { a[Is]... } };
-}
-
-template <std::size_t N>
-constexpr std::array<char, N - 1> to_array(const char (&a)[N])
-{
-  return to_array(a, std::make_index_sequence<N - 1>());
-}
-
-template <typename Array>
-constexpr bool compare_array(const Array& a, const Array& b)
-{
-  auto first1 = a.cbegin();
-  auto last1 = a.cend();
-  auto first2 = b.cbegin();
-  for (; first1 != last1; ++first1, ++first2) {
-    if (!(*first1 == *first2)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 int main()
 {
   constexpr auto format_str = INFMT_STRING(R"#(
