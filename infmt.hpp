@@ -125,21 +125,21 @@ struct types
 constexpr unsigned length_of(std::string_view s)
 {
   if (s.substr(0, 7u) == "{uint8}") {
-    return std::numeric_limits<std::uint8_t>::digits10;
+    return 3;
   } else if (s.substr(0, 6u) == "{int8}") {
-    return std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for minus
+    return 4u;
   } else if (s.substr(0, 8u) == "{uint16}") {
-    return std::numeric_limits<std::uint16_t>::digits10;
+    return 5;
   } else if (s.substr(0, 7u) == "{int16}") {
-    return std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for minus
+    return 6u; // 1u for minus
   } else if (s.substr(0, 8u) == "{uint32}") {
-    return std::numeric_limits<std::uint32_t>::digits10;
+    return 10;
   } else if (s.substr(0, 7u) == "{int32}") {
-    return std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for minus
+    return 11;
   } else if (s.substr(0, 8u) == "{uint64}") {
-    return std::numeric_limits<std::uint64_t>::digits10;
+    return 20;
   } else if (s.substr(0, 7u) == "{int64}") {
-    return std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for minus
+    return 20;
   } else if (s.substr(0, 4u) == "{str") {
     const auto end_pos = s.find('}');
     const auto number_subs = s.substr(4, end_pos - 4);
