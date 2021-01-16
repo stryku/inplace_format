@@ -131,7 +131,7 @@ constexpr unsigned length_of(std::string_view s)
   } else if (s.substr(0, 8u) == "{uint16}") {
     return 5;
   } else if (s.substr(0, 7u) == "{int16}") {
-    return 6u; // 1u for minus
+    return 6u;
   } else if (s.substr(0, 8u) == "{uint32}") {
     return 10;
   } else if (s.substr(0, 7u) == "{int32}") {
@@ -198,6 +198,12 @@ constexpr auto calc_size(std::string_view s)
       return size + current.size();
     }
 
+    if (current[begin_pos + 1] == '{') {
+      ++size;
+      current = current.substr(2);
+      continue;
+    }
+
     const auto end_pos = current.find('}', begin_pos);
     const auto subs = current.substr(begin_pos, end_pos + 1u);
     size += length_of(subs);
@@ -222,6 +228,9 @@ constexpr auto collect_format_info(S, Params... params)
   constexpr auto begin_pos = current.find('{');
   if constexpr (begin_pos == std::string_view::npos) {
     return format_info<S, CurrentSize + current.size(), types<Params...>>{};
+  } else if constexpr (current[begin_pos + 1u] == '{') {
+    return collect_format_info<CurrentPos + begin_pos + 2, CurrentSize + 3>(
+      S{}, params...);
   } else {
     constexpr auto end_pos = current.find('}', begin_pos);
     constexpr auto subs =
@@ -299,6 +308,15 @@ public:
     return ptr;
   }
 
+  template <unsigned N>
+  auto set(std::string_view value)
+  {
+    using param_t = std::decay_t<decltype(std::get<N>(m_params))>;
+    const auto param_buf = param_t::to_span(m_buffer);
+    std::copy(value.cbegin(), value.cend(), param_buf.begin());
+    return std::next(param_buf.begin(), value.size());
+  }
+
   template <unsigned N, typename Value>
   void set_with_fill(const Value& val, char fill)
   {
@@ -321,6 +339,8 @@ public:
       std::fill(ptr, max_fill_hint, fill);
     }
   }
+
+  decltype(auto) operator[](unsigned n) { return m_buffer[n]; }
 
   constexpr auto to_string_view() const
   {

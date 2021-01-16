@@ -253,4 +253,12 @@ int main()
     assert(cv == "|42..****************|");
     std::cout << "'" << cv << "'\n";
   }
+  {
+    constexpr auto format_str = INFMT_STRING(R"#(
+{{
+    "seq_no": {uint64},
+}}
+)#");
+    auto formatter = infmt::make_formatter(format_str);
+  }
 }
