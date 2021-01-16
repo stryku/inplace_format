@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <limits>
 #include <string_view>
 #include <tuple>
@@ -49,6 +50,14 @@ constexpr auto copy(InIt begin, InIt end, OutIt out)
   }
 }
 
+template <typename InIt, typename Value>
+constexpr auto fill(InIt begin, InIt end, Value val)
+{
+  while (begin != end) {
+    *begin++ = val;
+  }
+}
+
 constexpr auto stou(std::string_view str)
 {
   unsigned value{};
@@ -78,12 +87,13 @@ private:
 
 namespace details {
 
-template <typename T, unsigned Begin, unsigned Length>
+template <typename T, unsigned Begin, unsigned Length, unsigned FormatSize>
 struct format_param
 {
   using type_t = T;
   static constexpr auto begin_v = Begin;
   static constexpr auto length_v = Length;
+  static constexpr auto format_size_v = FormatSize;
 };
 
 struct string_param
@@ -127,24 +137,25 @@ constexpr auto format_param_from(S)
 {
   constexpr auto subs = S::substr(CurrentPos);
   constexpr auto length = length_of(subs);
+  constexpr auto format_length = subs.find('}') + 1u;
   if constexpr (S::substr(CurrentPos, 7u) == "{uint8}") {
-    return format_param<std::uint8_t, CurrentSize, length>{};
+    return format_param<std::uint8_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 6u) == "{int8}") {
-    return format_param<std::int8_t, CurrentSize, length>{};
+    return format_param<std::int8_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint16}") {
-    return format_param<std::uint16_t, CurrentSize, length>{};
+    return format_param<std::uint16_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int16}") {
-    return format_param<std::int16_t, CurrentSize, length>{};
+    return format_param<std::int16_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint32}") {
-    return format_param<std::uint32_t, CurrentSize, length>{};
+    return format_param<std::uint32_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int32}") {
-    return format_param<std::int32_t, CurrentSize, length>{};
+    return format_param<std::int32_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint64}") {
-    return format_param<std::uint64_t, CurrentSize, length>{};
+    return format_param<std::uint64_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
-    return format_param<std::int64_t, CurrentSize, length>{};
+    return format_param<std::int64_t, CurrentSize, length, format_length>{};
   } else if constexpr (S::substr(CurrentPos, 4) == "{str") {
-    return format_param<string_param, CurrentSize, length>{};
+    return format_param<string_param, CurrentSize, length, format_length>{};
   } else {
     return true;
   }
@@ -196,6 +207,49 @@ constexpr auto collect_format_info(S, Params... params)
                                CurrentSize + begin_pos + param.length_v>(
       S{}, params..., param);
   }
+}
+
+template <typename S, typename Buffer, typename... Params>
+constexpr auto make_iterable_params(Buffer& buffer, types<Params...>)
+{
+  constexpr auto s = S::to_string_view();
+  auto current_original = s.cbegin();
+  auto current_buffer = buffer.begin();
+
+  constexpr auto params = { Params{}... };
+
+  for (const auto param : params) {
+    const auto param_begin_in_original_it =
+      std::next(s.cbegin(), param.begin_v);
+
+    // Copy plain string that's before parameter
+    const auto plain_begin = current_original;
+    const auto plain_end = param_begin_in_original_it;
+    const auto plain_length = std::distance(plain_begin, plain_end);
+    copy(plain_begin, plain_end, current_buffer);
+    const auto to_advance = plain_length + param.size_v;
+    std::advance(current_original, to_advance);
+    std::advance(current_buffer, plain_length);
+
+    // Fill param place with spaces
+    const auto param_begin = current_buffer;
+    const auto param_end = std::next(current_buffer, param.size_v);
+    fill(param_begin, param_end, ' ');
+    std::advance(current_original, param.format_size_v);
+    std::advance(current_buffer, param.size_v);
+  }
+
+  // Fill last part of plain
+  copy(current_original, s.cend(), current_buffer);
+}
+
+template <typename S>
+constexpr auto make_buffer(S)
+{
+  constexpr auto info = collect_format_info<0u, 0u>(S{});
+  std::array<char, info.full_length_v> buffer{};
+
+  return buffer;
 }
 
 }
