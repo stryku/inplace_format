@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <charconv>
 #include <limits>
 #include <string_view>
 #include <tuple>
@@ -72,20 +73,28 @@ constexpr auto stou(std::string_view str)
 }
 }
 
-template <typename... Params>
-class formatter
+namespace details {
+
+template <typename T>
+class span
 {
 public:
-  constexpr formatter(std::string_view s, Params... params)
-    : m_params{ params... }
+  constexpr span() = default;
+  constexpr span(T* ptr, unsigned size)
+    : m_ptr{ ptr }
+    , m_size{ size }
   {
   }
 
-private:
-  std::tuple<Params...> m_params;
-};
+  auto begin() { return m_ptr; }
+  auto begin() const { return m_ptr; }
+  auto end() { return std::next(m_ptr, m_size); }
+  auto end() const { return std::next(m_ptr, m_size); }
 
-namespace details {
+private:
+  T* m_ptr{};
+  unsigned m_size{};
+};
 
 template <typename T, unsigned PosInOriginal, unsigned PosInOutputBuffer,
           unsigned Length, unsigned FormatSize>
@@ -96,6 +105,12 @@ struct format_param
   static constexpr auto pos_in_output_buffer_v = PosInOutputBuffer;
   static constexpr auto length_v = Length;
   static constexpr auto format_size_v = FormatSize;
+
+  template <typename Buffer>
+  static auto to_span(Buffer& buffer)
+  {
+    return span{ std::next(buffer.data(), pos_in_output_buffer_v), length_v };
+  }
 };
 
 struct string_param
@@ -268,10 +283,44 @@ constexpr auto make_buffer(S)
   return buffer;
 }
 
+template <typename S, typename... Params>
+class formatter
+{
+public:
+  constexpr formatter() = default;
+
+  template <unsigned N, typename Value>
+  void set(const Value& val)
+  {
+    using param_t = std::decay_t<decltype(std::get<N>(m_params))>;
+    const auto param_buf = param_t::to_span(m_buffer);
+    const auto [ptr, ec] =
+      std::to_chars(param_buf.begin(), param_buf.end(), val);
+  }
+
+  constexpr auto to_string_view() const
+  {
+    return std::string_view{ m_buffer.data(), m_buffer.size() };
+  }
+
+private:
+  std::tuple<Params...> m_params{};
+  decltype(make_buffer(S{})) m_buffer = make_buffer(S{});
+};
+
+template <typename S, std::string_view::size_type FullLength,
+          typename... Params>
+constexpr auto make_formatter_impl(
+  format_info<S, FullLength, types<Params...>>)
+{
+  return formatter<S, Params...>{};
+}
 }
 
-constexpr auto make_formatter(std::string_view s)
+template <typename S>
+constexpr auto make_formatter(S)
 {
-  return 42;
+  constexpr auto info = details::collect_format_info<0u, 0u>(S{});
+  return details::make_formatter_impl(info);
 }
 }

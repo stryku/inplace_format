@@ -1,5 +1,6 @@
 #include "infmt.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <type_traits>
 
@@ -206,5 +207,11 @@ int main()
     std::cout << "'" << std::string{ expected.cbegin(), expected.cend() }
               << "'\n";
   }
-  constexpr auto formatter = infmt::make_formatter("{int32}");
+  {
+    auto formatter = infmt::make_formatter(INFMT_STRING("{int32}"));
+    formatter.set<0>(42);
+    const auto cv = formatter.to_string_view();
+    assert(cv == "42");
+    std::cout << "'" << cv << "'\n";
+  }
 }
