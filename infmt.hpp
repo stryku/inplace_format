@@ -27,6 +27,19 @@ constexpr auto copy(InIt begin, InIt end, OutIt out)
     *out++ = *begin++;
   }
 }
+
+constexpr auto stou(std::string_view str)
+{
+  unsigned value{};
+  unsigned mul{ 1u };
+
+  for (const auto c : str) {
+    value = value * mul + (c - '0');
+    mul = 10u;
+  }
+
+  return value;
+}
 }
 
 template <typename... Params>
@@ -44,22 +57,46 @@ private:
 
 namespace details {
 
-template <typename T>
+template <typename T, unsigned Begin, unsigned Length>
 struct format_param
 {
-  using type = T;
-
-  constexpr format_param(unsigned begin, unsigned size)
-    : begin{ begin }
-    , size{ size }
-  {
-  }
-
-  unsigned begin;
-  unsigned size;
+  using type_t = T;
+  static constexpr auto begin_v = Begin;
+  static constexpr auto length_v = Length;
 };
 
 template <typename... Ts>
+struct types
+{
+};
+
+constexpr unsigned length_of(std::string_view s)
+{
+  if (s == "{uint8}") {
+    return std::numeric_limits<std::uint8_t>::digits10;
+  } else if (s == "{int8}") {
+    return std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for minus
+  } else if (s == "{uint16}") {
+    return std::numeric_limits<std::uint16_t>::digits10;
+  } else if (s == "{int16}") {
+    return std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for minus
+  } else if (s == "{uint32}") {
+    return std::numeric_limits<std::uint32_t>::digits10;
+  } else if (s == "{int32}") {
+    return std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for minus
+  } else if (s == "{uint64}") {
+    return std::numeric_limits<std::uint64_t>::digits10;
+  } else if (s == "{int64}") {
+    return std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for minus
+  } else if (s.substr(0, 4) == "{str") {
+    const auto end_pos = s.find('}');
+    const auto number_subs = s.substr(4, end_pos - 4);
+    return stou(number_subs);
+  }
+
+  return s.size();
+}
+
 constexpr auto calc_size(std::string_view s)
 {
   auto size = 0u;
@@ -73,26 +110,49 @@ constexpr auto calc_size(std::string_view s)
 
     const auto end_pos = current.find('}', begin_pos);
     const auto subs = current.substr(begin_pos, end_pos + 1u);
-    if (subs == "{uint8}") {
-      size += std::numeric_limits<std::uint8_t>::digits10;
-    } else if (subs == "{int8}") {
-      size += std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for minus
-    } else if (subs == "{uint16}") {
-      size += std::numeric_limits<std::uint16_t>::digits10;
-    } else if (subs == "{int16}") {
-      size += std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for minus
-    } else if (subs == "{uint32}") {
-      size += std::numeric_limits<std::uint32_t>::digits10;
-    } else if (subs == "{int32}") {
-      size += std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for minus
-    } else if (subs == "{uint64}") {
-      size += std::numeric_limits<std::uint64_t>::digits10;
-    } else if (subs == "{int64}") {
-      size += std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for minus
-    }
+    size += length_of(subs);
     current = current.substr(end_pos + 1u);
   }
 }
+
+template <typename... Params>
+constexpr auto collect_param_types(std::string_view s, unsigned current_pos,
+                                   Params... params)
+{
+  const auto begin_pos = current.find('{');
+  if (begin_pos == std::string_view::npos) {
+    return types<Params...>{};
+  }
+
+  const auto end_pos = current.find('}', begin_pos);
+  const auto subs = current.substr(begin_pos, end_pos + 1u);
+  size += length_of(subs);
+  if (subs == "{uint8}") {
+    size += std::numeric_limits<std::uint8_t>::digits10;
+  } else if (subs == "{int8}") {
+    size += std::numeric_limits<std::int8_t>::digits10 + 1u; // 1u for
+  } else if (subs == "{uint16}") {
+    size += std::numeric_limits<std::uint16_t>::digits10;
+  } else if (subs == "{int16}") {
+    size += std::numeric_limits<std::int16_t>::digits10 + 1u; // 1u for
+    minus
+  } else if (subs == "{uint32}") {
+    size += std::numeric_limits<std::uint32_t>::digits10;
+  } else if (subs == "{int32}") {
+    size += std::numeric_limits<std::int32_t>::digits10 + 1u; // 1u for
+    minus
+  } else if (subs == "{uint64}") {
+    size += std::numeric_limits<std::uint64_t>::digits10;
+  } else if (subs == "{int64}") {
+    size += std::numeric_limits<std::int64_t>::digits10 + 1u; // 1u for
+    minus
+  } else if (subs.substr(0, 4) == "{str") {
+    const auto number_subs = subs.substr(4, end_pos - 4);
+    size += stou(number_subs);
+  }
+  current = current.substr(end_pos + 1u);
+}
+
 }
 
 constexpr auto make_formatter(std::string_view s)
