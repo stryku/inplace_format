@@ -210,15 +210,13 @@ constexpr auto collect_format_info(S, Params... params)
 }
 
 template <typename S, typename Buffer, typename... Params>
-constexpr auto make_iterable_params(Buffer& buffer, types<Params...>)
+constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
 {
   constexpr auto s = S::to_string_view();
   auto current_original = s.cbegin();
   auto current_buffer = buffer.begin();
 
-  constexpr auto params = { Params{}... };
-
-  for (const auto param : params) {
+  auto filling_impl = [&](auto param) {
     const auto param_begin_in_original_it =
       std::next(s.cbegin(), param.begin_v);
 
@@ -237,7 +235,10 @@ constexpr auto make_iterable_params(Buffer& buffer, types<Params...>)
     fill(param_begin, param_end, ' ');
     std::advance(current_original, param.format_size_v);
     std::advance(current_buffer, param.size_v);
-  }
+  };
+
+  auto filler = [&](auto... params) { (filling_impl(params), ...); };
+  filler();
 
   // Fill last part of plain
   copy(current_original, s.cend(), current_buffer);
@@ -248,6 +249,8 @@ constexpr auto make_buffer(S)
 {
   constexpr auto info = collect_format_info<0u, 0u>(S{});
   std::array<char, info.full_length_v> buffer{};
+
+  fill_buffer<S>(buffer, typename decltype(info)::params_t{});
 
   return buffer;
 }
