@@ -5,6 +5,7 @@
 #include <limits>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 
 #define INFMT_STRING(s)                                                       \
   [] {                                                                        \
@@ -70,6 +71,20 @@ constexpr auto stou(std::string_view str)
   }
 
   return value;
+}
+
+template <typename T>
+constexpr unsigned max_chars_in_type(unsigned base = 10)
+{
+  unsigned count{};
+  auto value = std::numeric_limits<T>::max();
+
+  while (value > 0u) {
+    ++count;
+    value /= base;
+  }
+
+  return count + std::is_signed_v<T>;
 }
 }
 
@@ -156,27 +171,35 @@ constexpr auto format_param_from(S)
   constexpr auto length = length_of(subs);
   constexpr auto format_length = subs.find('}') + 1u;
   if constexpr (S::substr(CurrentPos, 7u) == "{uint8}") {
-    return format_param<std::uint8_t, CurrentPos, CurrentSize, length,
+    constexpr auto max_length = max_chars_in_type<std::uint8_t>();
+    return format_param<std::uint8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 6u) == "{int8}") {
+    constexpr auto max_length = max_chars_in_type<std::int8_t>();
     return format_param<std::int8_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint16}") {
+    constexpr auto max_length = max_chars_in_type<std::uint16_t>();
     return format_param<std::uint16_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int16}") {
+    constexpr auto max_length = max_chars_in_type<std::int16_t>();
     return format_param<std::int16_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint32}") {
+    constexpr auto max_length = max_chars_in_type<std::uint32_t>();
     return format_param<std::uint32_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int32}") {
+    constexpr auto max_length = max_chars_in_type<std::int32_t>();
     return format_param<std::int32_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint64}") {
+    constexpr auto max_length = max_chars_in_type<std::uint64_t>();
     return format_param<std::uint64_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
+    constexpr auto max_length = max_chars_in_type<std::int64_t>();
     return format_param<std::int64_t, CurrentPos, CurrentSize, length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 4) == "{str") {
