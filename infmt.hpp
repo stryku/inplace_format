@@ -140,21 +140,21 @@ struct types
 constexpr unsigned length_of(std::string_view s)
 {
   if (s.substr(0, 7u) == "{uint8}") {
-    return 3;
+    return max_chars_in_type<std::uint8_t>();
   } else if (s.substr(0, 6u) == "{int8}") {
-    return 4u;
+    return max_chars_in_type<std::int8_t>();
   } else if (s.substr(0, 8u) == "{uint16}") {
-    return 5;
+    return max_chars_in_type<std::uint16_t>();
   } else if (s.substr(0, 7u) == "{int16}") {
-    return 6u;
+    return max_chars_in_type<std::int16_t>();
   } else if (s.substr(0, 8u) == "{uint32}") {
-    return 10;
+    return max_chars_in_type<std::uint32_t>();
   } else if (s.substr(0, 7u) == "{int32}") {
-    return 11;
+    return max_chars_in_type<std::int32_t>();
   } else if (s.substr(0, 8u) == "{uint64}") {
-    return 20;
+    return max_chars_in_type<std::uint64_t>();
   } else if (s.substr(0, 7u) == "{int64}") {
-    return 20;
+    return max_chars_in_type<std::int64_t>();
   } else if (s.substr(0, 4u) == "{str") {
     const auto end_pos = s.find('}');
     const auto number_subs = s.substr(4, end_pos - 4);
@@ -168,42 +168,34 @@ template <unsigned CurrentPos, unsigned CurrentSize = 0u, typename S>
 constexpr auto format_param_from(S)
 {
   constexpr auto subs = S::substr(CurrentPos);
-  constexpr auto length = length_of(subs);
   constexpr auto format_length = subs.find('}') + 1u;
+  constexpr auto max_length = length_of(subs);
   if constexpr (S::substr(CurrentPos, 7u) == "{uint8}") {
-    constexpr auto max_length = max_chars_in_type<std::uint8_t>();
     return format_param<std::uint8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 6u) == "{int8}") {
-    constexpr auto max_length = max_chars_in_type<std::int8_t>();
-    return format_param<std::int8_t, CurrentPos, CurrentSize, length,
+    return format_param<std::int8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint16}") {
-    constexpr auto max_length = max_chars_in_type<std::uint16_t>();
-    return format_param<std::uint16_t, CurrentPos, CurrentSize, length,
+    return format_param<std::uint16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int16}") {
-    constexpr auto max_length = max_chars_in_type<std::int16_t>();
-    return format_param<std::int16_t, CurrentPos, CurrentSize, length,
+    return format_param<std::int16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint32}") {
-    constexpr auto max_length = max_chars_in_type<std::uint32_t>();
-    return format_param<std::uint32_t, CurrentPos, CurrentSize, length,
+    return format_param<std::uint32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int32}") {
-    constexpr auto max_length = max_chars_in_type<std::int32_t>();
-    return format_param<std::int32_t, CurrentPos, CurrentSize, length,
+    return format_param<std::int32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 8u) == "{uint64}") {
-    constexpr auto max_length = max_chars_in_type<std::uint64_t>();
-    return format_param<std::uint64_t, CurrentPos, CurrentSize, length,
+    return format_param<std::uint64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
-    constexpr auto max_length = max_chars_in_type<std::int64_t>();
-    return format_param<std::int64_t, CurrentPos, CurrentSize, length,
+    return format_param<std::int64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else if constexpr (S::substr(CurrentPos, 4) == "{str") {
-    return format_param<string_param, CurrentPos, CurrentSize, length,
+    return format_param<string_param, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else {
     return true;
