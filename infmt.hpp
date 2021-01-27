@@ -139,21 +139,21 @@ struct types
 
 constexpr unsigned length_of(std::string_view s)
 {
-  if (s.substr(0, 7u) == "{uint8}") {
+  if (s == "{uint8}") {
     return max_chars_in_type<std::uint8_t>();
-  } else if (s.substr(0, 6u) == "{int8}") {
+  } else if (s == "{int8}") {
     return max_chars_in_type<std::int8_t>();
-  } else if (s.substr(0, 8u) == "{uint16}") {
+  } else if (s == "{uint16}") {
     return max_chars_in_type<std::uint16_t>();
-  } else if (s.substr(0, 7u) == "{int16}") {
+  } else if (s == "{int16}") {
     return max_chars_in_type<std::int16_t>();
-  } else if (s.substr(0, 8u) == "{uint32}") {
+  } else if (s == "{uint32}") {
     return max_chars_in_type<std::uint32_t>();
-  } else if (s.substr(0, 7u) == "{int32}") {
+  } else if (s == "{int32}") {
     return max_chars_in_type<std::int32_t>();
-  } else if (s.substr(0, 8u) == "{uint64}") {
+  } else if (s == "{uint64}") {
     return max_chars_in_type<std::uint64_t>();
-  } else if (s.substr(0, 7u) == "{int64}") {
+  } else if (s == "{int64}") {
     return max_chars_in_type<std::int64_t>();
   } else if (s.substr(0, 4u) == "{str") {
     const auto end_pos = s.find('}');
@@ -169,32 +169,33 @@ constexpr auto format_param_from(S)
 {
   constexpr auto subs = S::substr(CurrentPos);
   constexpr auto format_length = subs.find('}') + 1u;
-  constexpr auto max_length = length_of(subs);
-  if constexpr (S::substr(CurrentPos, 7u) == "{uint8}") {
+  constexpr auto param_format_string = S::substr(CurrentPos, format_length);
+  constexpr auto max_length = length_of(param_format_string);
+  if constexpr (param_format_string == "{uint8}") {
     return format_param<std::uint8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 6u) == "{int8}") {
+  } else if constexpr (param_format_string == "{int8}") {
     return format_param<std::int8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 8u) == "{uint16}") {
+  } else if constexpr (param_format_string == "{uint16}") {
     return format_param<std::uint16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 7u) == "{int16}") {
+  } else if constexpr (param_format_string == "{int16}") {
     return format_param<std::int16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 8u) == "{uint32}") {
+  } else if constexpr (param_format_string == "{uint32}") {
     return format_param<std::uint32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 7u) == "{int32}") {
+  } else if constexpr (param_format_string == "{int32}") {
     return format_param<std::int32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 8u) == "{uint64}") {
+  } else if constexpr (param_format_string == "{uint64}") {
     return format_param<std::uint64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 7u) == "{int64}") {
+  } else if constexpr (param_format_string == "{int64}") {
     return format_param<std::int64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (S::substr(CurrentPos, 4) == "{str") {
+  } else if constexpr (param_format_string.substr(0, 4) == "{str") {
     return format_param<string_param, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else {
