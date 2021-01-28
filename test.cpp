@@ -99,7 +99,10 @@ int main()
   const auto unsigned_tester = [](auto val) {
     using value_t = decltype(val);
 
-    if constexpr (sizeof(value_t) == 4u) {
+    if constexpr (sizeof(value_t) == 2u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 5);
+      static_assert(type_dependent_calc_size<value_t>("{unsigned int}") == 5);
+    } else if constexpr (sizeof(value_t) == 4u) {
       static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 10);
       static_assert(type_dependent_calc_size<value_t>("{unsigned int}") == 10);
     } else if constexpr (sizeof(value_t) == 8u) {
