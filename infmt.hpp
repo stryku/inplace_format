@@ -148,6 +148,7 @@ enum class param_kind
   int32,
   uint64,
   int64,
+  short_int,
   int_,
   unsigned_int,
   long_int,
@@ -186,6 +187,10 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   }
   // Todo measure whether compilation time decreases whether `ifs` for
   // uncommonly used types (like signed) are moved to the end of function
+  if (s == "{short}" || s == "{short int}" || s == "{signed short}" ||
+      s == "{signed short int}") {
+    return param_kind::short_int;
+  }
   if (s == "{int}" || s == "{signed}" || s == "{signed int}") {
     return param_kind::int_;
   }
@@ -229,6 +234,9 @@ constexpr unsigned max_length_of(param_kind kind, std::string_view s)
     }
     case param_kind::int64: {
       return max_chars_in_type<std::int64_t>();
+    }
+    case param_kind::short_int: {
+      return max_chars_in_type<short int>();
     }
     case param_kind::int_: {
       return max_chars_in_type<int>();

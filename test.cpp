@@ -71,6 +71,36 @@ int main()
   static_assert(infmt::details::calc_size("{str10}") == 10u);
   static_assert(infmt::details::calc_size("{str1234567890}") == 1234567890u);
 
+  // Test short
+  const auto short_tester = [](auto val) {
+    using value_t = decltype(val);
+
+    if constexpr (sizeof(value_t) == 2u) {
+      static_assert(type_dependent_calc_size<value_t>("{short}") == 6);
+      static_assert(type_dependent_calc_size<value_t>("{short int}") == 6);
+      static_assert(type_dependent_calc_size<value_t>("{signed short}") == 6);
+      static_assert(type_dependent_calc_size<value_t>("{signed short int}") ==
+                    6);
+    } else if constexpr (sizeof(value_t) == 4u) {
+      static_assert(type_dependent_calc_size<value_t>("{short}") == 11);
+      static_assert(type_dependent_calc_size<value_t>("{short int}") == 11);
+      static_assert(type_dependent_calc_size<value_t>("{signed short}") == 11);
+      static_assert(type_dependent_calc_size<value_t>("{signed short int}") ==
+                    11);
+    } else if constexpr (sizeof(value_t) == 8u) {
+      static_assert(type_dependent_calc_size<value_t>("{short}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{short int}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{signed short}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{signed short int}") ==
+                    20);
+    } else {
+      static_assert(dependent_false<decltype(val)>::value,
+                    "Architecture not supported");
+    }
+  };
+
+  short_tester((short int){});
+
   // Test int
   const auto int_tester = [](auto val) {
     using value_t = decltype(val);
