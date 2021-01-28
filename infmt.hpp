@@ -149,7 +149,7 @@ enum class param_kind
   uint64,
   int64,
   int_,
-  unsigned_,
+  unsigned_int,
   long_int,
   unsigned_long_int,
   str
@@ -190,7 +190,7 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
     return param_kind::int_;
   }
   if (s == "{unsigned}" || s == "{unsigned int}") {
-    return param_kind::unsigned_;
+    return param_kind::unsigned_int;
   }
   if (s == "{long}" || s == "{long int}" || s == "{signed long}" ||
       s == "{signed long int}") {
@@ -233,7 +233,7 @@ constexpr unsigned max_length_of(param_kind kind, std::string_view s)
     case param_kind::int_: {
       return max_chars_in_type<int>();
     }
-    case param_kind::unsigned_: {
+    case param_kind::unsigned_int: {
       return max_chars_in_type<unsigned>();
     }
     case param_kind::long_int: {
