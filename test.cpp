@@ -239,6 +239,23 @@ int main()
 
   long_long_int_tester((long long int){});
 
+  // Test unsigned long long
+  const auto unsigned_long_long_tester = [](auto val) {
+    using value_t = decltype(val);
+
+    if constexpr (sizeof(value_t) == 8u) {
+      static_assert(
+        type_dependent_calc_size<value_t>("{unsigned long long}") == 20);
+      static_assert(
+        type_dependent_calc_size<value_t>("{unsigned long long int}") == 20);
+    } else {
+      static_assert(dependent_false<value_t>::value,
+                    "Architecture not supported");
+    }
+  };
+
+  unsigned_long_long_tester((unsigned long long int){});
+
   static_assert(
     infmt::details::calc_size("{uint8_t}{int8_t}{uint16_t}{int16_t}{uint32_t}{"
                               "int32_t}{uint64_t}{int64_t}{str123}999 9") ==
