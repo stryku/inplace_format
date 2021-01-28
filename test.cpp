@@ -97,8 +97,10 @@ int main()
 
     if constexpr (sizeof(value_t) == 4u) {
       static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 10);
+      static_assert(type_dependent_calc_size<value_t>("{unsigned int}") == 10);
     } else if constexpr (sizeof(value_t) == 8u) {
       static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{unsigned int}") == 20);
     } else {
       static_assert(dependent_false<value_t>::value,
                     "Architecture not supported");

@@ -187,7 +187,7 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   if (s == "{int}" || s == "{signed}" || s == "{signed int}") {
     return param_kind::int_;
   }
-  if (s == "{unsigned}") {
+  if (s == "{unsigned}" || s == "{unsigned int}") {
     return param_kind::unsigned_;
   }
 
