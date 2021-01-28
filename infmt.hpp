@@ -184,7 +184,7 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   return std::nullopt;
 }
 
-constexpr unsigned length_of(param_kind kind, std::string_view s)
+constexpr unsigned max_length_of(param_kind kind, std::string_view s)
 {
   switch (kind) {
     case param_kind::uint8: {
@@ -219,7 +219,7 @@ constexpr unsigned length_of(param_kind kind, std::string_view s)
   }
 }
 
-constexpr unsigned length_of(std::string_view s)
+constexpr unsigned max_length_of(std::string_view s)
 {
   const auto kind = format_str_to_kind(s);
 
@@ -228,7 +228,7 @@ constexpr unsigned length_of(std::string_view s)
     return 0;
   }
 
-  return length_of(*kind, s);
+  return max_length_of(*kind, s);
 }
 
 template <unsigned CurrentPos, unsigned CurrentSize = 0u, typename S>
@@ -243,7 +243,7 @@ constexpr auto format_param_from(S)
     return true;
   }
 
-  constexpr auto max_length = length_of(*kind, param_format_string);
+  constexpr auto max_length = max_length_of(*kind, param_format_string);
 
   if constexpr (kind == param_kind::uint8) {
     return format_param<std::uint8_t, CurrentPos, CurrentSize, max_length,
@@ -296,7 +296,7 @@ constexpr auto calc_size(std::string_view s)
 
     const auto end_pos = current.find('}', begin_pos);
     const auto subs = current.substr(begin_pos, end_pos + 1u);
-    size += length_of(subs);
+    size += max_length_of(subs);
     current = current.substr(end_pos + 1u);
   }
 }
