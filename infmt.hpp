@@ -184,16 +184,9 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   return std::nullopt;
 }
 
-constexpr unsigned length_of(std::string_view s)
+constexpr unsigned length_of(param_kind kind, std::string_view s)
 {
-  const auto kind = format_str_to_kind(s);
-
-  if (kind == std::nullopt) {
-    // Handle properly
-    return 0;
-  }
-
-  switch (*kind) {
+  switch (kind) {
     case param_kind::uint8: {
       return max_chars_in_type<std::uint8_t>();
     }
@@ -226,38 +219,57 @@ constexpr unsigned length_of(std::string_view s)
   }
 }
 
+constexpr unsigned length_of(std::string_view s)
+{
+  const auto kind = format_str_to_kind(s);
+
+  if (kind == std::nullopt) {
+    // Handle properly
+    return 0;
+  }
+
+  return length_of(*kind, s);
+}
+
 template <unsigned CurrentPos, unsigned CurrentSize = 0u, typename S>
 constexpr auto format_param_from(S)
 {
   constexpr auto subs = S::substr(CurrentPos);
   constexpr auto format_length = subs.find('}') + 1u;
   constexpr auto param_format_string = S::substr(CurrentPos, format_length);
-  constexpr auto max_length = length_of(param_format_string);
-  if constexpr (param_format_string == "{uint8}") {
+  constexpr auto kind = format_str_to_kind(param_format_string);
+  if constexpr (kind == std::nullopt) {
+    // Todo: handle properly
+    return true;
+  }
+
+  constexpr auto max_length = length_of(*kind, param_format_string);
+
+  if constexpr (kind == param_kind::uint8) {
     return format_param<std::uint8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{int8}") {
+  } else if constexpr (kind == param_kind::int8) {
     return format_param<std::int8_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{uint16}") {
+  } else if constexpr (kind == param_kind::uint16) {
     return format_param<std::uint16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{int16}") {
+  } else if constexpr (kind == param_kind::int16) {
     return format_param<std::int16_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{uint32}") {
+  } else if constexpr (kind == param_kind::uint32) {
     return format_param<std::uint32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{int32}") {
+  } else if constexpr (kind == param_kind::int32) {
     return format_param<std::int32_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{uint64}") {
+  } else if constexpr (kind == param_kind::uint64) {
     return format_param<std::uint64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string == "{int64}") {
+  } else if constexpr (kind == param_kind::int64) {
     return format_param<std::int64_t, CurrentPos, CurrentSize, max_length,
                         format_length>{};
-  } else if constexpr (param_format_string.substr(0, 4) == "{str") {
+  } else if constexpr (kind == param_kind::str) {
     return format_param<string_param, CurrentPos, CurrentSize, max_length,
                         format_length>{};
   } else {
