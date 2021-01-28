@@ -9,8 +9,8 @@ int main()
 {
   constexpr auto format_str = INFMT_STRING(R"#(
 {{
-    "seq_no": {uint64},
-    "value": {int32},
+    "seq_no": {uint64_t},
+    "value": {int32_t},
     "string content": "{str30},
     "msg_type": "ping"
 }}

@@ -156,28 +156,28 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   if (s.substr(0, 4u) == "{str") {
     return param_kind::str;
   }
-  if (s == "{uint8}") {
+  if (s == "{uint8_t}") {
     return param_kind::uint8;
   }
-  if (s == "{int8}") {
+  if (s == "{int8_t}") {
     return param_kind::int8;
   }
-  if (s == "{uint16}") {
+  if (s == "{uint16_t}") {
     return param_kind::uint16;
   }
-  if (s == "{int16}") {
+  if (s == "{int16_t}") {
     return param_kind::int16;
   }
-  if (s == "{uint32}") {
+  if (s == "{uint32_t}") {
     return param_kind::uint32;
   }
-  if (s == "{int32}") {
+  if (s == "{int32_t}") {
     return param_kind::int32;
   }
-  if (s == "{uint64}") {
+  if (s == "{uint64_t}") {
     return param_kind::uint64;
   }
-  if (s == "{int64}") {
+  if (s == "{int64_t}") {
     return param_kind::int64;
   }
 
