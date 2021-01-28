@@ -143,6 +143,7 @@ enum class param_kind
   bool_,
   char_,
   signed_char,
+  unsigned_char,
   uint8,
   int8,
   uint16,
@@ -175,6 +176,9 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   }
   if (s == "{signed char}") {
     return param_kind::signed_char;
+  }
+  if (s == "{unsigned char}") {
+    return param_kind::unsigned_char;
   }
   if (s == "{uint8_t}") {
     return param_kind::uint8;
@@ -245,6 +249,9 @@ constexpr unsigned max_length_of(param_kind kind, std::string_view s)
     }
     case param_kind::signed_char: {
       return max_chars_in_type<signed char>();
+    }
+    case param_kind::unsigned_char: {
+      return max_chars_in_type<unsigned char>();
     }
     case param_kind::uint8: {
       return max_chars_in_type<std::uint8_t>();
