@@ -101,6 +101,33 @@ int main()
 
   short_tester((short int){});
 
+  // Test unsigned short
+  const auto unsigned_short_tester = [](auto val) {
+    using value_t = decltype(val);
+
+    if constexpr (sizeof(value_t) == 2u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned short}") ==
+                    5);
+      static_assert(
+        type_dependent_calc_size<value_t>("{unsigned short int}") == 5);
+    } else if constexpr (sizeof(value_t) == 4u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned short}") ==
+                    10);
+      static_assert(
+        type_dependent_calc_size<value_t>("{unsigned short int}") == 10);
+    } else if constexpr (sizeof(value_t) == 8u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned short}") ==
+                    20);
+      static_assert(
+        type_dependent_calc_size<value_t>("{unsigned short int}") == 20);
+    } else {
+      static_assert(dependent_false<value_t>::value,
+                    "Architecture not supported");
+    }
+  };
+
+  unsigned_short_tester((unsigned short){});
+
   // Test int
   const auto int_tester = [](auto val) {
     using value_t = decltype(val);
