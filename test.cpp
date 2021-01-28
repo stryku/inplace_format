@@ -4,6 +4,11 @@
 #include <iostream>
 #include <type_traits>
 
+template <class T>
+struct dependent_false : std::false_type
+{
+};
+
 template <std::size_t N, std::size_t... Is>
 constexpr std::array<char, N - 1> to_array(const char (&a)[N],
                                            std::index_sequence<Is...>)
@@ -32,6 +37,12 @@ constexpr bool compare_array(const Array& a, const Array& b)
   return true;
 }
 
+template <typename T>
+constexpr auto type_dependent_calc_size(std::string_view s)
+{
+  return infmt::details::calc_size(s);
+};
+
 int main()
 {
 
@@ -59,6 +70,22 @@ int main()
   static_assert(infmt::details::calc_size("{str9}") == 9);
   static_assert(infmt::details::calc_size("{str10}") == 10u);
   static_assert(infmt::details::calc_size("{str1234567890}") == 1234567890u);
+
+  // Test int
+  const auto int_tester = [](auto val) {
+    using value_t = decltype(val);
+
+    if constexpr (sizeof(value_t) == 4u) {
+      static_assert(type_dependent_calc_size<value_t>("{int}") == 11);
+    } else if constexpr (sizeof(value_t) == 8u) {
+      static_assert(type_dependent_calc_size<value_t>("{int}") == 20);
+    } else {
+      static_assert(dependent_false<decltype(val)>::value,
+                    "Architecture not supported");
+    }
+  };
+
+  int_tester(int{});
 
   static_assert(
     infmt::details::calc_size("{uint8_t}{int8_t}{uint16_t}{int16_t}{uint32_t}{"
