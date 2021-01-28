@@ -87,6 +87,22 @@ int main()
 
   int_tester(int{});
 
+  // Test unsigned
+  const auto unsigned_tester = [](auto val) {
+    using value_t = decltype(val);
+
+    if constexpr (sizeof(value_t) == 4u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 10);
+    } else if constexpr (sizeof(value_t) == 8u) {
+      static_assert(type_dependent_calc_size<value_t>("{unsigned}") == 20);
+    } else {
+      static_assert(dependent_false<value_t>::value,
+                    "Architecture not supported");
+    }
+  };
+
+  unsigned_tester(unsigned{});
+
   static_assert(
     infmt::details::calc_size("{uint8_t}{int8_t}{uint16_t}{int16_t}{uint32_t}{"
                               "int32_t}{uint64_t}{int64_t}{"
