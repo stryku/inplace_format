@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <limits.h>
 #include <type_traits>
 
 template <class T>
@@ -45,6 +46,7 @@ constexpr auto type_dependent_calc_size(std::string_view s)
 
 int main()
 {
+  static_assert(CHAR_BIT == 8u);
 
   static_assert(infmt::details::stou("1") == 1u);
   static_assert(infmt::details::stou("9") == 9u);
@@ -53,6 +55,10 @@ int main()
 
   static_assert(infmt::details::calc_size("") == 0);
   static_assert(infmt::details::calc_size(" ") == 1);
+
+  static_assert(infmt::details::calc_size("{bool}") == 5u);
+
+  static_assert(infmt::details::calc_size("{char}") == 4u);
 
   static_assert(infmt::details::calc_size("{uint8_t}") == 3);
   static_assert(infmt::details::calc_size("{int8_t}") == 4);

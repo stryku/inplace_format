@@ -140,6 +140,8 @@ struct types
 
 enum class param_kind
 {
+  bool_,
+  char_,
   uint8,
   int8,
   uint16,
@@ -163,6 +165,12 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
 {
   if (s.substr(0, 4u) == "{str") {
     return param_kind::str;
+  }
+  if (s == "{bool}") {
+    return param_kind::bool_;
+  }
+  if (s == "{char}") {
+    return param_kind::char_;
   }
   if (s == "{uint8_t}") {
     return param_kind::uint8;
@@ -224,6 +232,13 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
 constexpr unsigned max_length_of(param_kind kind, std::string_view s)
 {
   switch (kind) {
+    case param_kind::bool_: {
+      // 'true' or 'false'
+      return 5u;
+    }
+    case param_kind::char_: {
+      return max_chars_in_type<char>();
+    }
     case param_kind::uint8: {
       return max_chars_in_type<std::uint8_t>();
     }
