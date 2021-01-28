@@ -182,7 +182,9 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   if (s == "{int64_t}") {
     return param_kind::int64;
   }
-  if (s == "{int}") {
+  // Todo measure whether compilation time decreases whether `ifs` for
+  // uncommonly used types (like signed) are moved to the end of function
+  if (s == "{int}" || s == "{signed}" || s == "{signed int}") {
     return param_kind::int_;
   }
   if (s == "{unsigned}") {

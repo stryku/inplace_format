@@ -77,8 +77,12 @@ int main()
 
     if constexpr (sizeof(value_t) == 4u) {
       static_assert(type_dependent_calc_size<value_t>("{int}") == 11);
+      static_assert(type_dependent_calc_size<value_t>("{signed}") == 11);
+      static_assert(type_dependent_calc_size<value_t>("{signed int}") == 11);
     } else if constexpr (sizeof(value_t) == 8u) {
       static_assert(type_dependent_calc_size<value_t>("{int}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{signed}") == 20);
+      static_assert(type_dependent_calc_size<value_t>("{signed int}") == 20);
     } else {
       static_assert(dependent_false<decltype(val)>::value,
                     "Architecture not supported");
@@ -105,8 +109,7 @@ int main()
 
   static_assert(
     infmt::details::calc_size("{uint8_t}{int8_t}{uint16_t}{int16_t}{uint32_t}{"
-                              "int32_t}{uint64_t}{int64_t}{"
-                              "str123}999 9") ==
+                              "int32_t}{uint64_t}{int64_t}{str123}999 9") ==
     3 + 4 + 5 + 6 + 10 + 11 + 20 + 20 + 123 + 5);
 
   // using type_t =
