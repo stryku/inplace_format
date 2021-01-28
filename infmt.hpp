@@ -3,6 +3,7 @@
 #include <array>
 #include <charconv>
 #include <limits>
+#include <optional>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -137,31 +138,92 @@ struct types
 {
 };
 
-constexpr unsigned length_of(std::string_view s)
+enum class param_kind
 {
+  uint8,
+  int8,
+  uint16,
+  int16,
+  uint32,
+  int32,
+  uint64,
+  int64,
+  str
+};
+
+constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
+{
+  if (s.substr(0, 4u) == "{str") {
+    return param_kind::str;
+  }
   if (s == "{uint8}") {
-    return max_chars_in_type<std::uint8_t>();
-  } else if (s == "{int8}") {
-    return max_chars_in_type<std::int8_t>();
-  } else if (s == "{uint16}") {
-    return max_chars_in_type<std::uint16_t>();
-  } else if (s == "{int16}") {
-    return max_chars_in_type<std::int16_t>();
-  } else if (s == "{uint32}") {
-    return max_chars_in_type<std::uint32_t>();
-  } else if (s == "{int32}") {
-    return max_chars_in_type<std::int32_t>();
-  } else if (s == "{uint64}") {
-    return max_chars_in_type<std::uint64_t>();
-  } else if (s == "{int64}") {
-    return max_chars_in_type<std::int64_t>();
-  } else if (s.substr(0, 4u) == "{str") {
-    const auto end_pos = s.find('}');
-    const auto number_subs = s.substr(4, end_pos - 4);
-    return stou(number_subs);
+    return param_kind::uint8;
+  }
+  if (s == "{int8}") {
+    return param_kind::int8;
+  }
+  if (s == "{uint16}") {
+    return param_kind::uint16;
+  }
+  if (s == "{int16}") {
+    return param_kind::int16;
+  }
+  if (s == "{uint32}") {
+    return param_kind::uint32;
+  }
+  if (s == "{int32}") {
+    return param_kind::int32;
+  }
+  if (s == "{uint64}") {
+    return param_kind::uint64;
+  }
+  if (s == "{int64}") {
+    return param_kind::int64;
   }
 
-  return s.size();
+  return std::nullopt;
+}
+
+constexpr unsigned length_of(std::string_view s)
+{
+  const auto kind = format_str_to_kind(s);
+
+  if (kind == std::nullopt) {
+    // Handle properly
+    return 0;
+  }
+
+  switch (*kind) {
+    case param_kind::uint8: {
+      return max_chars_in_type<std::uint8_t>();
+    }
+    case param_kind::int8: {
+      return max_chars_in_type<std::int8_t>();
+    }
+    case param_kind::uint16: {
+      return max_chars_in_type<std::uint16_t>();
+    }
+    case param_kind::int16: {
+      return max_chars_in_type<std::int16_t>();
+    }
+    case param_kind::uint32: {
+      return max_chars_in_type<std::uint32_t>();
+    }
+    case param_kind::int32: {
+      return max_chars_in_type<std::int32_t>();
+    }
+    case param_kind::uint64: {
+      return max_chars_in_type<std::uint64_t>();
+    }
+    case param_kind::int64: {
+      return max_chars_in_type<std::int64_t>();
+    }
+    case param_kind::str: {
+      const auto end_pos = s.find('}');
+      const auto number_subs = s.substr(4, end_pos - 4);
+      return stou(number_subs);
+    }
+  }
 }
 
 template <unsigned CurrentPos, unsigned CurrentSize = 0u, typename S>
@@ -263,7 +325,6 @@ constexpr auto collect_format_info(S, Params... params)
 template <typename S, typename Buffer, typename... Params>
 constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
 {
-  // using a = typename types<Params...>::asdads;
   constexpr auto s = S::to_string_view();
   auto current_original = s.cbegin();
   auto current_buffer = buffer.begin();
@@ -277,9 +338,8 @@ constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
     const auto plain_end = param_begin_in_original_it;
     const auto plain_length = std::distance(plain_begin, plain_end);
     copy(plain_begin, plain_end, current_buffer);
-    // const auto to_advance = plain_length + param.format;
+
     current_original = param_begin_in_original_it;
-    // std::advance(current_original, to_advance);
     std::advance(current_buffer, plain_length);
 
     // Fill param place with spaces
