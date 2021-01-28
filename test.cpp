@@ -75,7 +75,11 @@ int main()
   const auto int_tester = [](auto val) {
     using value_t = decltype(val);
 
-    if constexpr (sizeof(value_t) == 4u) {
+    if constexpr (sizeof(value_t) == 2u) {
+      static_assert(type_dependent_calc_size<value_t>("{int}") == 6);
+      static_assert(type_dependent_calc_size<value_t>("{signed}") == 6);
+      static_assert(type_dependent_calc_size<value_t>("{signed int}") == 6);
+    } else if constexpr (sizeof(value_t) == 4u) {
       static_assert(type_dependent_calc_size<value_t>("{int}") == 11);
       static_assert(type_dependent_calc_size<value_t>("{signed}") == 11);
       static_assert(type_dependent_calc_size<value_t>("{signed int}") == 11);
