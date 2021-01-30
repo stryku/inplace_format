@@ -87,6 +87,13 @@ constexpr unsigned max_chars_in_type(unsigned base = 10)
 
   return count + std::is_signed_v<T>;
 }
+
+template <typename T>
+constexpr unsigned max_chars_in_floating_type()
+{
+  // Todo implement
+  return 128u;
+}
 }
 
 namespace details {
@@ -144,14 +151,6 @@ enum class param_kind
   char_,
   signed_char,
   unsigned_char,
-  uint8,
-  int8,
-  uint16,
-  int16,
-  uint32,
-  int32,
-  uint64,
-  int64,
   short_int,
   unsigned_short_int,
   int_,
@@ -160,6 +159,17 @@ enum class param_kind
   unsigned_long_int,
   long_long_int,
   unsigned_long_long_int,
+  float_,
+  double_,
+  long_double,
+  uint8,
+  int8,
+  uint16,
+  int16,
+  uint32,
+  int32,
+  uint64,
+  int64,
   str
 };
 
@@ -179,30 +189,6 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   }
   if (s == "{unsigned char}") {
     return param_kind::unsigned_char;
-  }
-  if (s == "{uint8_t}") {
-    return param_kind::uint8;
-  }
-  if (s == "{int8_t}") {
-    return param_kind::int8;
-  }
-  if (s == "{uint16_t}") {
-    return param_kind::uint16;
-  }
-  if (s == "{int16_t}") {
-    return param_kind::int16;
-  }
-  if (s == "{uint32_t}") {
-    return param_kind::uint32;
-  }
-  if (s == "{int32_t}") {
-    return param_kind::int32;
-  }
-  if (s == "{uint64_t}") {
-    return param_kind::uint64;
-  }
-  if (s == "{int64_t}") {
-    return param_kind::int64;
   }
   // Todo measure whether compilation time decreases whether `ifs` for
   // uncommonly used types (like signed) are moved to the end of function
@@ -233,6 +219,39 @@ constexpr std::optional<param_kind> format_str_to_kind(std::string_view s)
   if (s == "{unsigned long long}" || s == "{unsigned long long int}") {
     return param_kind::unsigned_long_long_int;
   }
+  if (s == "{float}") {
+    return param_kind::float_;
+  }
+  if (s == "{double}") {
+    return param_kind::double_;
+  }
+  if (s == "{long double}") {
+    return param_kind::long_double;
+  }
+  if (s == "{uint8_t}") {
+    return param_kind::uint8;
+  }
+  if (s == "{int8_t}") {
+    return param_kind::int8;
+  }
+  if (s == "{uint16_t}") {
+    return param_kind::uint16;
+  }
+  if (s == "{int16_t}") {
+    return param_kind::int16;
+  }
+  if (s == "{uint32_t}") {
+    return param_kind::uint32;
+  }
+  if (s == "{int32_t}") {
+    return param_kind::int32;
+  }
+  if (s == "{uint64_t}") {
+    return param_kind::uint64;
+  }
+  if (s == "{int64_t}") {
+    return param_kind::int64;
+  }
 
   return std::nullopt;
 }
@@ -252,30 +271,6 @@ constexpr unsigned max_length_of(param_kind kind, std::string_view s)
     }
     case param_kind::unsigned_char: {
       return max_chars_in_type<unsigned char>();
-    }
-    case param_kind::uint8: {
-      return max_chars_in_type<std::uint8_t>();
-    }
-    case param_kind::int8: {
-      return max_chars_in_type<std::int8_t>();
-    }
-    case param_kind::uint16: {
-      return max_chars_in_type<std::uint16_t>();
-    }
-    case param_kind::int16: {
-      return max_chars_in_type<std::int16_t>();
-    }
-    case param_kind::uint32: {
-      return max_chars_in_type<std::uint32_t>();
-    }
-    case param_kind::int32: {
-      return max_chars_in_type<std::int32_t>();
-    }
-    case param_kind::uint64: {
-      return max_chars_in_type<std::uint64_t>();
-    }
-    case param_kind::int64: {
-      return max_chars_in_type<std::int64_t>();
     }
     case param_kind::short_int: {
       return max_chars_in_type<short int>();
@@ -300,6 +295,39 @@ constexpr unsigned max_length_of(param_kind kind, std::string_view s)
     }
     case param_kind::unsigned_long_long_int: {
       return max_chars_in_type<unsigned long long int>();
+    }
+    case param_kind::float_: {
+      return max_chars_in_floating_type<float>();
+    }
+    case param_kind::double_: {
+      return max_chars_in_floating_type<double>();
+    }
+    case param_kind::long_double: {
+      return max_chars_in_floating_type<long double>();
+    }
+    case param_kind::uint8: {
+      return max_chars_in_type<std::uint8_t>();
+    }
+    case param_kind::int8: {
+      return max_chars_in_type<std::int8_t>();
+    }
+    case param_kind::uint16: {
+      return max_chars_in_type<std::uint16_t>();
+    }
+    case param_kind::int16: {
+      return max_chars_in_type<std::int16_t>();
+    }
+    case param_kind::uint32: {
+      return max_chars_in_type<std::uint32_t>();
+    }
+    case param_kind::int32: {
+      return max_chars_in_type<std::int32_t>();
+    }
+    case param_kind::uint64: {
+      return max_chars_in_type<std::uint64_t>();
+    }
+    case param_kind::int64: {
+      return max_chars_in_type<std::int64_t>();
     }
     case param_kind::str: {
       const auto end_pos = s.find('}');

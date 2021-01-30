@@ -62,6 +62,10 @@ int main()
   static_assert(infmt::details::calc_size("{signed char}") == 4u);
   static_assert(infmt::details::calc_size("{unsigned char}") == 3u);
 
+  static_assert(infmt::details::calc_size("{float}") == 128u);
+  static_assert(infmt::details::calc_size("{double}") == 128u);
+  static_assert(infmt::details::calc_size("{long double}") == 128u);
+
   static_assert(infmt::details::calc_size("{uint8_t}") == 3);
   static_assert(infmt::details::calc_size("{int8_t}") == 4);
 
@@ -78,6 +82,22 @@ int main()
   static_assert(infmt::details::calc_size("{str9}") == 9);
   static_assert(infmt::details::calc_size("{str10}") == 10u);
   static_assert(infmt::details::calc_size("{str1234567890}") == 1234567890u);
+
+  // Test wchar_t
+  // const auto wchar_tester = [](auto val) {
+  //   using value_t = decltype(val);
+
+  //   if constexpr (sizeof(value_t) == 2u) {
+  //     static_assert(type_dependent_calc_size<value_t>("{wchar_t}") == 6);
+  //   } else if constexpr (sizeof(value_t) == 4u) {
+  //     static_assert(type_dependent_calc_size<value_t>("{wchar_t}") == 11);
+  //   } else {
+  //     static_assert(dependent_false<decltype(val)>::value,
+  //                   "Architecture not supported");
+  //   }
+  // };
+
+  // wchar_tester((wchar_t){});
 
   // Test short
   const auto short_tester = [](auto val) {
@@ -406,7 +426,8 @@ int main()
     constexpr auto buffer = infmt::details::make_buffer(s);
 
     constexpr auto expected = to_array(
-      "|   |    |     |      |          |           |                    |    "
+      "|   |    |     |      |          |           |                    |  "
+      "  "
       "                |                                          |");
     static_assert(compare_array(buffer, expected));
     std::cout << "'" << std::string{ buffer.cbegin(), buffer.cend() } << "'\n";
