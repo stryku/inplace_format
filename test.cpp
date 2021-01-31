@@ -62,9 +62,9 @@ int main()
   static_assert(infmt::details::calc_size("{signed char}") == 4u);
   static_assert(infmt::details::calc_size("{unsigned char}") == 3u);
 
-  static_assert(infmt::details::calc_size("{float}") == 128u);
-  static_assert(infmt::details::calc_size("{double}") == 128u);
-  static_assert(infmt::details::calc_size("{long double}") == 128u);
+  static_assert(infmt::details::calc_size("{float}") == 48u);
+  static_assert(infmt::details::calc_size("{double}") == 327u);
+  static_assert(infmt::details::calc_size("{long double}") == 4954u);
 
   static_assert(infmt::details::calc_size("{uint8_t}") == 3);
   static_assert(infmt::details::calc_size("{int8_t}") == 4);

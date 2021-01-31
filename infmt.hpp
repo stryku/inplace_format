@@ -91,8 +91,13 @@ constexpr unsigned max_chars_in_type(unsigned base = 10)
 template <typename T>
 constexpr unsigned max_chars_in_floating_type()
 {
-  // Todo implement
-  return 128u;
+  if constexpr (std::is_same_v<T, float>) {
+    return 48u;
+  } else if constexpr (std::is_same_v<T, double>) {
+    return 327u;
+  } else {
+    return 4954u;
+  }
 }
 }
 
