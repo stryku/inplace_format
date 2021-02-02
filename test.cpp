@@ -502,4 +502,10 @@ int main()
 )#");
     auto formatter = infmt::make_formatter(format_str);
   }
+  {
+    auto formatter = infmt::make_formatter(INFMT_STRING("| {{ | }} |"));
+    const auto cv = formatter.to_string_view();
+    assert(cv == "| { | } |");
+    std::cout << "'" << cv << "'\n";
+  }
 }
