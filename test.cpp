@@ -420,15 +420,28 @@ int main()
     static_assert(std::is_same_v<typename result_t::params_t, expected_t>);
   }
   {
-    constexpr auto s = INFMT_STRING(
-      "|{uint8_t}|{int8_t}|{uint16_t}|{int16_t}|{uint32_t}|{int32_t}|"
-      "{uint64_t}|{int64_t}|{str42}|");
+    constexpr auto s = INFMT_STRING("|{uint8_t}"
+                                    "|{int8_t}"
+                                    "|{uint16_t}"
+                                    "|{int16_t}"
+                                    "|{uint32_t}"
+                                    "|{int32_t}"
+                                    "|{uint64_t}"
+                                    "|{int64_t}"
+                                    "|{str42}|");
     constexpr auto buffer = infmt::details::make_buffer(s);
 
-    constexpr auto expected = to_array(
-      "|   |    |     |      |          |           |                    |  "
-      "  "
-      "                |                                          |");
+    constexpr auto expected =
+      to_array("|   "                                         //{uint8_t}
+               "|    "                                        //{int8_t}
+               "|     "                                       //{uint16_t}
+               "|      "                                      //{int16_t}
+               "|          "                                  //{uint32_t}
+               "|           "                                 //{int32_t}
+               "|                    "                        //{uint64_t}
+               "|                    "                        //{int64_t}
+               "|                                          |" //{str42}
+      );
     static_assert(compare_array(buffer, expected));
     std::cout << "'" << std::string{ buffer.cbegin(), buffer.cend() } << "'\n";
     std::cout << "'" << std::string{ expected.cbegin(), expected.cend() }
