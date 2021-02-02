@@ -438,14 +438,14 @@ int main()
     auto formatter = infmt::make_formatter(INFMT_STRING("{int32_t}"));
     formatter.set<0>(42);
     const auto cv = formatter.to_string_view();
-    assert(cv == "-2147483648");
+    assert(cv == "42         ");
     std::cout << "'" << cv << "'\n";
   }
   {
     auto formatter = infmt::make_formatter(INFMT_STRING("{int32_t}"));
     formatter.set<0>(std::numeric_limits<int32_t>::min());
     const auto cv = formatter.to_string_view();
-    assert(cv == "42         ");
+    assert(cv == "-2147483648");
     std::cout << "'" << cv << "'\n";
   }
   {
