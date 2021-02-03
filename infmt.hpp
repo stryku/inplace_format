@@ -399,29 +399,66 @@ constexpr auto format_param_from(S)
     return true;
   }
 }
-
 constexpr auto calc_size(std::string_view s)
 {
   auto size = 0u;
-  auto current = s;
 
-  while (true) {
-    const auto begin_pos = current.find('{');
-    if (begin_pos == std::string_view::npos) {
-      return size + current.size();
-    }
+  for (auto i = 0u; i < s.size();) {
+    const auto c = s[i];
 
-    if (current[begin_pos + 1] == '{') {
+    if (c == '}') {
+      // Found ending brace without begin brace. Next char can only be another
+      // ending brace.
+      if (i + 1u >= s.size()) {
+        // Todo report malformed format stirng. } without {
+      }
+
+      if (s[i + 1u] != '}') {
+        // Todo report malformed format stirng. } without {
+      }
+
+      // Got }}. Treat it as one char } in output string
       ++size;
-      current = current.substr(2);
+      i += 2u; // Omit both }}
       continue;
     }
 
-    const auto end_pos = current.find('}', begin_pos);
-    const auto subs = current.substr(begin_pos, end_pos + 1u);
-    size += max_length_of(subs);
-    current = current.substr(end_pos + 1u);
+    if (c == '{') {
+      // Two possibilities - {{ or a format parameter
+
+      if (i + 1u >= s.size()) {
+        // Todo report malformed format string. A single { at the end of format
+        // string
+      }
+
+      if (s[i + 1u] == '{') {
+        // Got {{. Treat it as one char { in output string
+        ++size;
+        i += 2u; // Omit both {{
+        continue;
+      }
+
+      // Should be a format parameter
+
+      const auto begin_pos = i;
+
+      const auto end_pos = s.find('}', begin_pos);
+      if (end_pos == std::string_view::npos) {
+        // Todo report malformed format parameter. { without }
+      }
+
+      const auto subs = s.substr(begin_pos, end_pos - begin_pos + 1u);
+      size += max_length_of(subs);
+      i = end_pos + 1u;
+      continue;
+    }
+
+    // Got a regular char.
+    ++size;
+    ++i;
   }
+
+  return size;
 }
 
 template <typename S, std::string_view::size_type FullLength, typename Params>

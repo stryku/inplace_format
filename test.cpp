@@ -53,8 +53,11 @@ int main()
   static_assert(infmt::details::stou("10") == 10u);
   static_assert(infmt::details::stou("1234567890") == 1234567890u);
 
-  static_assert(infmt::details::calc_size("") == 0);
-  static_assert(infmt::details::calc_size(" ") == 1);
+  static_assert(infmt::details::calc_size("") == 0u);
+  static_assert(infmt::details::calc_size(" ") == 1u);
+  static_assert(infmt::details::calc_size("{{") == 1u);
+  static_assert(infmt::details::calc_size("}}") == 1u);
+  static_assert(infmt::details::calc_size("{{}}") == 2u);
 
   static_assert(infmt::details::calc_size("{bool}") == 5u);
 
