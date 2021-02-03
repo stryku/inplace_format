@@ -57,7 +57,7 @@ int main()
   static_assert(infmt::details::calc_size(" ") == 1u);
   static_assert(infmt::details::calc_size("{{") == 1u);
   static_assert(infmt::details::calc_size("}}") == 1u);
-  static_assert(infmt::details::calc_size("{{}}") == 2u);
+  static_assert(infmt::details::calc_size("| {{ | }} |") == 9u);
 
   static_assert(infmt::details::calc_size("{bool}") == 5u);
 
@@ -508,7 +508,7 @@ int main()
   {
     auto formatter = infmt::make_formatter(INFMT_STRING("| {{ | }} |"));
     const auto cv = formatter.to_string_view();
-    assert(cv == "| { | } |");
     std::cout << "'" << cv << "'\n";
+    assert(cv == std::string_view{ "| { | } |" });
   }
 }

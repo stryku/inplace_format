@@ -479,7 +479,7 @@ constexpr auto collect_format_info(S, Params... params)
   if constexpr (begin_pos == std::string_view::npos) {
     return format_info<S, CurrentSize + current.size(), types<Params...>>{};
   } else if constexpr (current[begin_pos + 1u] == '{') {
-    return collect_format_info<CurrentPos + begin_pos + 2, CurrentSize + 3>(
+    return collect_format_info<CurrentPos + begin_pos + 2, CurrentSize + 2>(
       S{}, params...);
   } else {
     constexpr auto end_pos = current.find('}', begin_pos);
@@ -501,6 +501,25 @@ constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
   auto current_original = s.cbegin();
   auto current_buffer = buffer.begin();
 
+  const auto copy_plain_string = [&](auto begin, auto end) {
+    // Include end
+    while (begin != end) {
+      ++begin;
+
+      // Copy plain char
+      *current_buffer++ = *current_original++;
+
+      if (begin == end) {
+        break;
+      }
+
+      // We had {{ or }} in plain text. Omit the second char
+      if (*current_original == '{' || *current_original == '}') {
+        ++current_original;
+      }
+    }
+  };
+
   auto filling_impl = [&](auto param) {
     const auto param_begin_in_original_it =
       std::next(s.cbegin(), param.pos_in_original_v);
@@ -508,11 +527,7 @@ constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
     // Copy plain string that's before parameter
     const auto plain_begin = current_original;
     const auto plain_end = param_begin_in_original_it;
-    const auto plain_length = std::distance(plain_begin, plain_end);
-    copy(plain_begin, plain_end, current_buffer);
-
-    current_original = param_begin_in_original_it;
-    std::advance(current_buffer, plain_length);
+    copy_plain_string(plain_begin, plain_end);
 
     // Fill param place with spaces
     const auto param_begin = current_buffer;
@@ -526,7 +541,7 @@ constexpr auto fill_buffer(Buffer& buffer, types<Params...>)
   filler(Params{}...);
 
   // Fill last part of plain
-  copy(current_original, s.cend(), current_buffer);
+  copy_plain_string(current_original, s.cend());
 }
 
 template <typename S>
