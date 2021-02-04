@@ -476,7 +476,14 @@ constexpr auto collect_format_info(S, Params... params)
 {
   constexpr auto current = S::substr(CurrentPos);
   constexpr auto begin_pos = current.find('{');
-  if constexpr (begin_pos == std::string_view::npos) {
+  constexpr auto end_brace_begin_pos = current.find('}');
+  if constexpr (end_brace_begin_pos != std::string_view::npos &&
+                end_brace_begin_pos < begin_pos) {
+    if constexpr (current[end_brace_begin_pos + 1u] == '}') {
+      return collect_format_info<CurrentPos + end_brace_begin_pos + 2,
+                                 CurrentSize + 2>(S{}, params...);
+    }
+  } else if constexpr (begin_pos == std::string_view::npos) {
     return format_info<S, CurrentSize + current.size(), types<Params...>>{};
   } else if constexpr (current[begin_pos + 1u] == '{') {
     return collect_format_info<CurrentPos + begin_pos + 2, CurrentSize + 2>(
